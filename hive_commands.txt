@@ -1,0 +1,67 @@
+<-- Creating a table and inserting data into it from a file in HDFS -->
+
+CREATE EXTERNAL TABLE IF NOT EXISTS temp_user(
+         firstname VARCHAR(64),
+        lastname  VARCHAR(64),
+        address   STRING,
+        country   VARCHAR(64),
+        city      VARCHAR(64),
+        state     VARCHAR(64),
+        post      STRING,
+        phone1    VARCHAR(64),
+        phone2    STRING,
+        email     STRING,
+        web       STRING
+        )
+        ROW FORMAT DELIMITED 
+          FIELDS TERMINATED BY ','
+          LINES TERMINATED BY '\n'
+       STORED AS TEXTFILE;
+ 
+LOAD DATA  INPATH '/home/user/user_table.txt' INTO TABLE temp_user;
+
+<-- creating a table with partition and buckets-->
+
+CREATE TABLE bucketed_user(
+        firstname VARCHAR(64),
+        lastname  VARCHAR(64),
+        address   STRING,
+        city       VARCHAR(64),
+       state     VARCHAR(64),
+        post      STRING,
+        phone1    VARCHAR(64),
+        phone2    STRING,
+        email     STRING,
+        web       STRING
+        )
+       COMMENT 'A bucketed sorted user table'
+        PARTITIONED BY (country VARCHAR(64))
+       CLUSTERED BY (state) SORTED BY (city) INTO 32 BUCKETS
+        STORED AS SEQUENCEFILE;
+
+
+<-- setting properties for creating dynamic partititon and bucketing--->
+
+
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.exec.max.dynamic.partitions.pernode=1000;
+set hive.enforce.bucketing = true;
+
+
+
+<-- Inserting data into partitioned and bucketed table-->
+
+INSERT OVERWRITE TABLE bucketed_user PARTITION (country)
+       SELECT  firstname ,
+               		lastname  ,
+               		address   ,
+               city      ,
+               state     ,
+               		post      ,
+               		phone1    ,
+               		phone2    ,
+               		email     ,
+               		web       ,
+               		country   
+        	FROM temp_user;
