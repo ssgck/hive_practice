@@ -20,6 +20,25 @@ CREATE EXTERNAL TABLE IF NOT EXISTS temp_user(
  
 LOAD DATA  INPATH '/home/user/user_table.txt' INTO TABLE temp_user;
 
+
+array_type
+  : ARRAY < data_type >
+ 
+map_type
+  : MAP < primitive_type, data_type >
+ 
+struct_type
+  : STRUCT < col_name : data_type [COMMENT col_comment], ...>
+ 
+union_type
+   : UNIONTYPE < data_type, data_type, ... >  -- (Note: Available in Hive 0.7.0 and later)
+ 
+row_format
+  : DELIMITED [FIELDS TERMINATED BY char [ESCAPED BY char]] [COLLECTION ITEMS TERMINATED BY char]
+        [MAP KEYS TERMINATED BY char] [LINES TERMINATED BY char]
+        [NULL DEFINED AS char]   -- (Note: Available in Hive 0.13 and later)
+  | SERDE serde_name [WITH SERDEPROPERTIES (property_name=property_value, property_name=property_value, ...)]
+
 <-- creating a table with partition and buckets-->
 
 CREATE TABLE bucketed_user(
@@ -65,3 +84,6 @@ INSERT OVERWRITE TABLE bucketed_user PARTITION (country)
                		web       ,
                		country   
         	FROM temp_user;
+         
+<-- CSV SERDE -->
+normal CSV = 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
